@@ -1,0 +1,245 @@
+ragma solidity ^0.5.1;
+
+contract MyContract{
+    string public constant stringvalue = "myValue";
+    bool public myBool =true;
+   int public myInt = 1;
+   uint public myuint = 11; //can't be sighned
+   uint8 public muint8 = 8;
+   uint256 public muint256 = 9999;
+     
+}
+
+****************************************************************
+
+pragma solidity ^0.5.1;
+
+contract MyContract{
+    enum State { Waiting , Ready ,Active}
+    
+    State public state ;
+    constructor() public {
+        state = State.Waiting;
+    }
+    function  activate () public{
+        state = State.Ready;
+    }
+    function isActive() public view returns(bool){
+        
+     return state == State.Ready;
+}
+
+
+
+**************************************************************
+
+pragma solidity ^0.5.1;
+
+    contract MyContract{
+    uint256 public peopleCount=0;
+    mapping(uint=>Person) public people;
+    
+    uint256 openingtime = 1544669773;
+    
+   
+    modifier onlyWhileOpen(){
+    require(block.timestamp>=openingtime);  
+    _;
+  }
+  struct Person{
+        uint _id;
+       string _firstName;
+       string _lastName;
+ }
+ 
+
+ function addPerson
+ (
+     string memory _firstName,
+     string memory _lastName
+ ) 
+     public 
+     onlyWhileOpen 
+{
+    incrementCount();
+    people[peopleCount]=Person(peopleCount,_firstName,_lastName);
+     
+     
+ }
+ function incrementCount()internal{
+     peopleCount+=1;
+ }
+}
+
+
+
+pragma solidity ^0.5.1;
+
+    contract MyContract{
+    //track someone s balance
+    mapping(address=>uint256) public balances;
+    address payable  wallet;
+    constructor(address payable _wallet)public{
+        wallet = _wallet;
+    }
+    
+    function( ) external payable{
+        buyToken();
+    }
+    
+    //function that accepts ether
+    function buyToken()public payable{
+        //buy a token 
+        balances[msg.sender]+=1;
+        
+        //send the ether to wallet
+        wallet.transfer(msg.value);
+    }
+   
+}
+
+*************************************************************************
+
+pragma solidity ^0.5.1;
+
+
+    contract MyContract{
+    //track someone s balance
+    mapping(address=>uint256) public balances;
+    address payable  wallet;
+    event Purchase(
+        address indexed _buyer,
+        uint256 _amount
+        );
+    constructor(address payable _wallet)public{
+        wallet = _wallet;
+    }
+    
+    function( ) external payable{
+        buyToken();
+    }
+    
+    //function that accepts ether
+    function buyToken()public payable{
+        //buy a token 
+        balances[msg.sender]+=1;
+        
+        //send the ether to wallet
+        wallet.transfer(msg.value);
+        
+        emit Purchase(msg.sender,1);
+    }
+   
+}
+***************************************************************
+pragma solidity ^0.5.1;
+// 2 contracts at a time
+contract ERC20Token{
+    string public name;
+    mapping(address=>uint256)public balances;
+    
+    function mint()public {
+        balances[tx.origin]++;
+    } 
+}
+    contract MyContract{
+    //track someone s balance
+    mapping(address=>uint256) public balances;
+    address payable  wallet;
+    address public token;
+   
+    constructor(address payable _wallet, address _token)public{
+        wallet = _wallet;
+        token = _token;
+    }
+    
+    function( ) external payable{
+        buyToken();
+    }
+    
+    //function that accepts ether
+    function buyToken()public payable{
+        ERC20Token _token = ERC20Token(address(token));
+        _token.mint();
+        //buy a token 
+        balances[msg.sender]+=1;
+        
+        //send the ether to wallet
+        wallet.transfer(msg.value);
+        
+       
+    }
+   
+}
+
+
+****************************************************************************
+inheriting smart contract
+
+pragma solidity ^0.5.1;
+
+contract ERC20Token{
+    string public name;
+    mapping(address=>uint256)public balances;
+    constructor (string memory _name )public {
+        name = _name;
+    }
+    
+    function mint()public {
+        balances[tx.origin]++;
+    } 
+}
+
+
+    contract MyToken is ERC20Token{  //inheriting erc30 here
+       string public symbol;
+       address[]public owners;
+       uint256 ownerCount;
+       
+       constructor (
+        string memory _name,
+        string memory _symbol
+        )
+        ERC20Token(_name)
+        public {
+               symbol = _symbol;
+    }
+    
+    function mint()public{
+        super.mint();
+        ownerCount ++;
+        owners.push(msg.sender);
+        
+    }
+   
+}
+*********************************************************************
+pragma solidity ^0.5.1;
+
+contract Escrow{
+    address agent;  //etherium address
+    // person will have all the permission to use the conract... agents adreess is stored on th lockchain
+    // adress is the data type and the agent is the variable name
+    mapping(address => uint256)public deposits;
+    
+    modifier onlyAgent(){
+        require(msg.sender == agent);
+        _;
+    }
+    constructor()public{
+        agent = msg.sender;
+    }
+    function deposit(address payee)public onlyAgent payable{ //payee will recieve the funds
+        uint256 amount = msg.value;  //you can send the ether with this transaction and will be stored in he msg.value
+        deposits[payee] = deposits[payee] + amount;
+    }
+    function withdraw(address payable payee) public onlyAgent{
+        uint256 payment = deposits[payee];
+        deposits[payee] = 0;
+        payee.transfer(payment);// send it payyee
+    }
+    }
+
+
+//so escro agent will take charge 
+********************************************************************
